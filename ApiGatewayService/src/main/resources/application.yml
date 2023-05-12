@@ -1,0 +1,70 @@
+server:
+  port: 9090
+
+
+spring:
+  application:
+    name: API-GATEWAY
+  config:
+    import: configserver:http://${CONFIG_SERVER_URL:localhost}:9296
+
+  cloud:
+    gateway:
+      routes:
+        - id: ORDER-SERVICE
+          uri: lb://ORDER-SERVICE
+          predicates:
+            - Path=/v1/orders/**
+          filters:
+            - name: CircuitBreaker # Circuit Breaker
+              args:
+                name: ORDER-SERVICE
+                fallbackuri: forward:/orderServiceFallback
+            - name: RequestRateLimiter # Rate Limiter
+              args:
+                redis-rate-limiter.replenishRate: 1
+                redis-rate-limiter.burstCapacity: 1
+        - id: PAYMENT-SERVICE
+          uri: lb://PAYMENT-SERVICE
+          predicates:
+            - Path=/v1/payment/**
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: PAYMENT-SERVICE
+                fallbackuri: forward:/paymentServiceFallback
+            - name: RequestRateLimiter
+              args:
+                redis-rate-limiter.replenishRate: 1
+                redis-rate-limiter.burstCapacity: 1
+        - id: PRODUCT-SERVICE
+          uri: lb://PRODUCT-SERVICE
+          predicates:
+            - Path=/v1/products/**
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: PRODUCT-SERVICE
+                fallbackuri: forward:/productServiceFallback
+            - name: RequestRateLimiter
+              args:
+                redis-rate-limiter.replenishRate: 1 # How many request can be allow per second
+                redis-rate-limiter.burstCapacity: 1 # How many request to allow in that particular one direction per second
+
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://localhost:8181/realms/online-shopping-app
+      client:
+        provider:
+          keycloak:
+            issuer-uri: http://localhost:8181/realms/online-shopping-app
+        registration:
+          spring-cloud-gateway-client:
+            client-id: spring-cloud-gateway-client
+            client-secret: 9vdxB8APoBi1VqfnskkwAw7gTC05wWqN
+            provider: keycloak
+            authorization-grant-type: authorization_code
+            redirect-uri: http://localhost:8181/realms/online-shopping-app/protocol/openid-connect/auth?client_id=account-console&redirect_uri=http%3A%2F%2Flocalhost%3A8181%2Frealms%2Fonline-shopping-app%2Faccount%2F%23%2Fpersonal-info&state=9e4a4771-c6a5-49b8-b42e-480db0da1865&response_mode=fragment&response_type=code&scope=openid&nonce=8d8f2f75-febd-44b0-b9a5-a1f7d74491a3&code_challenge=VzuWVRKzuMIKvTW1oxE3DkywkwoKhIwR51pRLjwIgB8&code_challenge_method=S256
+
