@@ -16,8 +16,7 @@ public class ApplicationConfig {
         return factory -> factory.configureDefault(
                 id -> new Resilience4JConfigBuilder(id)
                         .circuitBreakerConfig(
-                                CircuitBreakerConfig.ofDefaults()
-                        ).build()
+                                CircuitBreakerConfig.ofDefaults()).build()
         );
     }
 

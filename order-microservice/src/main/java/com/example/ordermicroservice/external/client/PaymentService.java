@@ -11,12 +11,12 @@ import org.springframework.web.bind.annotation.RequestBody;
 @FeignClient(name = "PAYMENT-SERVICE", url = "http://localhost:8080/v1/payment")
 public interface PaymentService {
 
-    // Method for handling payment request
+    // TODO: Method for handling payment request
     @PostMapping("/makePayment")
     ResponseEntity<Long> doPayment(
             @RequestBody PaymentRequest paymentRequest);
 
-    default void fallback(Exception e){
+    default ResponseEntity<Void> fallback(Exception e){
         throw new CustomFeignErrorResponseException(
                 "payment service is not available",
                 "SERVICE IS UNAVAILABLE", 500);

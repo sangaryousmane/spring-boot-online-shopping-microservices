@@ -9,6 +9,8 @@
     <file url="file://$PROJECT_DIR$/order-microservice/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/payment-microservice/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/payment-microservice/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/product-microservice/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/product-microservice/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/spring-service-registry/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/spring-service-registry/src/main/resources" charset="UTF-8" />
   </component>

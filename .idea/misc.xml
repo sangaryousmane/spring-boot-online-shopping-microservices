@@ -1,13 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
+  <component name="ExternalStorageConfigurationManager" enabled="true" />
+  <component name="FrameworkDetectionExcludesConfiguration">
+    <file type="web" url="file://$PROJECT_DIR$/CustomerService" />
+  </component>
   <component name="MavenProjectsManager">
     <option name="originalFiles">
       <list>
         <option value="$PROJECT_DIR$/ApiGatewayService/pom.xml" />
-        <option value="$PROJECT_DIR$/order-microservice/pom.xml" />
         <option value="$PROJECT_DIR$/ConfigServerService/pom.xml" />
         <option value="$PROJECT_DIR$/payment-microservice/pom.xml" />
         <option value="$PROJECT_DIR$/spring-service-registry/pom.xml" />
+        <option value="$PROJECT_DIR$/product-microservice/pom.xml" />
+        <option value="$USER_HOME$/Downloads/order-microservice/pom.xml" />
+        <option value="$PROJECT_DIR$/order-microservice/pom.xml" />
       </list>
     </option>
   </component>

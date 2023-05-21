@@ -1,13 +1,13 @@
 package com.example.ordermicroservice.controller;
 
+import com.example.ordermicroservice.service.OrdersServiceImpl;
 import com.example.ordermicroservice.model.OrderModel;
 import com.example.ordermicroservice.model.OrderResponse;
-import com.example.ordermicroservice.service.OrdersServiceImpl;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import javax.ws.rs.Path;
 import java.util.List;
 
 import static org.springframework.http.HttpStatus.OK;
@@ -17,11 +17,9 @@ import static org.springframework.http.HttpStatus.OK;
 public class OrdersController {
 
     @Qualifier("ordersServiceImpl")
-    private final OrdersServiceImpl ordersServiceImpl;
+    @Autowired
+    private OrdersServiceImpl ordersServiceImpl;
 
-    public OrdersController(OrdersServiceImpl ordersServiceImpl) {
-        this.ordersServiceImpl = ordersServiceImpl;
-    }
 
     // Save a product
     @PostMapping("/save")
@@ -37,17 +35,15 @@ public class OrdersController {
     }
 
     @DeleteMapping("/removeOrder/{id}")
-    public String removeOrder(@PathVariable("id") Integer id){
+    public String removeOrder(@PathVariable("id") Long id) {
         ordersServiceImpl.removeOrder(id);
-        return "Order with id "+ id + " removed successfully";
+        return "Order with id " + id + " removed successfully";
     }
 
     @GetMapping("/{orderId}")
     public ResponseEntity<OrderResponse> getOrderDetails(
-            @PathVariable Long orderId){
-        OrderResponse orderResponse=ordersServiceImpl.getOrderDetails(orderId);
-        return new ResponseEntity<>(orderResponse,OK);
+            @PathVariable Long orderId) {
+        OrderResponse orderResponse = ordersServiceImpl.getOrderDetails(orderId);
+        return new ResponseEntity<>(orderResponse, OK);
     }
-
-
 }

@@ -1,4 +1,5 @@
 package com.example.ordermicroservice.external.client;
+
 import com.example.ordermicroservice.exceptions.CustomFeignErrorResponseException;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import org.springframework.cloud.openfeign.FeignClient;
@@ -11,14 +12,13 @@ import org.springframework.web.bind.annotation.RequestParam;
 @FeignClient(name = "PRODUCT-SERVICE", url = "http://localhost:8081/v1/products")
 public interface ProductService {
 
-    // Method for handling the reduction of quantities
+    // TODO: Method for handling the reduction of product quantities
     @PutMapping("/reduceQuantity/{id}")
     ResponseEntity<Void> reduceQuantity(
             @PathVariable("id") Long productId,
             @RequestParam Long quantity);
 
-
-    default void fallback(Exception e){
+    default ResponseEntity<Void> fallback(Exception e) {
         throw new CustomFeignErrorResponseException(
                 "Product service not responding",
                 "SERVICE NOT AVAILABLE", 500);

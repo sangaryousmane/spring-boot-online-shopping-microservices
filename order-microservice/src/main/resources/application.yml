@@ -1,0 +1,61 @@
+server:
+  port: 8081
+  error:
+    include-stacktrace: never
+spring:
+  datasource:
+    username: root
+    password:
+    url: jdbc:mysql://localhost:3306/orderdb
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  jpa:
+    show-sql: true
+    properties:
+      hibernate:
+        ddl-auto: update
+        dialect: org.hibernate.dialect.MySQLDialect
+  application:
+    name: ORDER-SERVICE
+  config:
+    import: configserver:http://${CONFIG_SERVER_URL:localhost}:9296
+
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    password: pgwefeefxrqlbsnu
+    username: sangaryousmane@gmail.com
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+
+
+
+  security:
+    oauth2:
+      resource-server:
+        jwt:
+          issuer-uri: http://localhost:8181/realms/online-shopping-app
+#      client:
+#        registration:
+#          internal-client:
+#            provider: okta
+#            authorization-grant-type: client_credentials
+#            scope: internal
+#            client-id: 0oa91viks76netKYA5d7
+#            client-secret: DPyCbovRhpEpXJAHbacQvGNCBhb6pXUJh9XyaxVX
+#        provider:
+#          okta:
+#            issuer-uri: https://dev-48898188.okta.com/oauth2/default
+
+# configuration for the eureka client
+#eureka:
+#  instance:
+#    prefer-ip-address: true
+#  client:
+#    fetch-registry: true
+#    register-with-eureka: true
+#    service-url:
+#      defaultZone: ${EUREKA_SERVER_ADDRESS:http://localhost:8761/eureka}

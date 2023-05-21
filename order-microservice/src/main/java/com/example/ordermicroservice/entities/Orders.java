@@ -14,12 +14,15 @@ public class Orders {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    private Integer orderId;
+    private Long orderId;
     private Long productId;
     private Long quantity;
     private Instant orderDate;
     private Long amount;
     private String orderState;
+
+    @Column(name = "customer_id")
+    private Long customerId;
 
 
     public Orders(Long productId, Long quantity, Instant orderDate,

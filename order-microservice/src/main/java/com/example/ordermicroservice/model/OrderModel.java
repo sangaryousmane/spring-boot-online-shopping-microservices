@@ -13,7 +13,7 @@ import java.time.Instant;
 @Builder
 public class OrderModel {
 
-    private Integer orderId;
+    private Long orderId;
     private Long productId;
     private Long quantity;
     private Instant orderDate;

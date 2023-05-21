@@ -12,6 +12,4 @@ public class FeignConfig {
     public ErrorDecoder errorDecoder() {
         return new CustomErrorDecoder();
     }
-
-
 }

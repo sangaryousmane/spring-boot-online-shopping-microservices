@@ -12,6 +12,10 @@ services:
       - '9296:9296'
     environment:
       - EUREKA_SERVER_ADDRESS:http://serviceregistry:8761/eureka
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://configserver:9296/actuator/health"]
+      timeout: 5ms
+      retries: 5
     depends_on:
       - serviceregistry
   apigateway:
@@ -22,7 +26,9 @@ services:
       - EUREKA_SERVER_ADDRESS:http://serviceregistry:8761/eureka
       - CONFIG_SERVER_URL=configserver
     depends_on:
-      - serviceregistry
+     configserver:
+       condition: service_healthy
+
   orderservice:
     image: 'ousmane1999/orderservice:0.0.1'
     ports:
@@ -31,7 +37,9 @@ services:
       - EUREKA_SERVER_ADDRESS:http://serviceregistry:8761/eureka
       - CONFIG_SERVER_URL=configserver
     depends_on:
-      - serviceregistry
+      configserver:
+        condition: service_healthy
+
   productservice:
     image: 'ousmane1999/productservice:0.0.1'
     ports:
@@ -40,7 +48,8 @@ services:
       - EUREKA_SERVER_ADDRESS:http://serviceregistry:8761/eureka
       - CONFIG_SERVER_URL=configserver
     depends_on:
-      - serviceregistry
+      configserver:
+        condition: service_healthy
   paymentservice:
     image: 'ousmane1999/paymentservice:0.0.1'
     ports:
@@ -49,4 +58,5 @@ services:
       - EUREKA_SERVER_ADDRESS:http://serviceregistry:8761/eureka
       - CONFIG_SERVER_URL=configserver
     depends_on:
-      - serviceregistry
+      configserver:
+        condition: service_healthy

@@ -3,36 +3,54 @@ package com.example.ordermicroservice.service;
 import com.example.ordermicroservice.entities.Orders;
 import com.example.ordermicroservice.exceptions.CustomFeignErrorResponseException;
 import com.example.ordermicroservice.exceptions.OrderNotFoundException;
+import com.example.ordermicroservice.external.client.CustomerService;
 import com.example.ordermicroservice.external.client.PaymentService;
 import com.example.ordermicroservice.external.client.ProductService;
 import com.example.ordermicroservice.external.request.PaymentRequest;
 import com.example.ordermicroservice.external.response.PaymentResponse;
+import com.example.ordermicroservice.external.response.ProductResponse;
+import com.example.ordermicroservice.model.CustomerRequest;
 import com.example.ordermicroservice.model.OrderModel;
 import com.example.ordermicroservice.model.OrderResponse;
-import com.example.ordermicroservice.external.response.ProductResponse;
 import com.example.ordermicroservice.repository.OrdersRepository;
-import lombok.RequiredArgsConstructor;
+import lombok.NoArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.mail.MailException;
+import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
+import javax.mail.Message;
+import javax.mail.internet.InternetAddress;
 import java.time.Instant;
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
 @Log4j2
-@RequiredArgsConstructor
+@NoArgsConstructor
 public class OrdersServiceImpl implements OrdersService {
 
-    private final OrdersRepository ordersRepository;
+    @Autowired
+    private OrdersRepository ordersRepository;
 
-    private final ProductService productService;
+    @Autowired
+    private JavaMailSender mailSender;
 
-    private final PaymentService paymentService;
+    @Autowired
+    private CustomerService customerService;
 
-    private final RestTemplate restTemplate;
+    @Autowired
+    private ProductService productService;
+
+    @Autowired
+    private PaymentService paymentService;
+
+    @Autowired
+    private RestTemplate restTemplate;
+
 
     @Override
     public OrderModel saveOrder(OrderModel orderModel) {
@@ -57,7 +75,7 @@ public class OrdersServiceImpl implements OrdersService {
         // Payment Service -> SUCCESS if complete else FAILED.
         log.info("Calling payment service to complete the payment...");
         PaymentRequest paymentRequest = PaymentRequest.builder()
-                .orderId(Long.valueOf(orders.getOrderId()))
+                .orderId(orders.getOrderId())
                 .paymentMode(orderModel.getPaymentMode())
                 .amount(orderModel.getAmount())
                 .build();
@@ -75,7 +93,32 @@ public class OrdersServiceImpl implements OrdersService {
         orders.setOrderState(orderStatus);
         ordersRepository.save(orders);
         log.info("Transaction done successfully!");
+        sendEmailToCustomer(orders);
         return orderModel;
+    }
+
+    public void sendEmailToCustomer(Orders orders) {
+        CustomerRequest getCusto = new CustomerRequest();
+
+        // customer order done
+        log.info("Customer ordering...");
+        customerService.getCustomerDetails(getCusto.getCustomerId());
+        Orders customerId = ordersRepository.findById(
+                orders.getCustomerId()).orElseThrow(() ->
+                new CustomFeignErrorResponseException("Customer Id not found", "404", 1));
+
+        try {
+            mailSender.send(mimeMessage -> {
+                mimeMessage.setRecipient(Message.RecipientType.TO, new InternetAddress(getCusto.getCustomerEmail()));
+                mimeMessage.setFrom(new InternetAddress("buyme@gmail.com"));
+                String message = "Dear " + getCusto.getLastName() + " " +
+                        getCusto.getFirstName() + ", thanks for your purchase." +
+                        "Your order number is " + customerId.getOrderId() + orders.getOrderId() + ".";
+                mimeMessage.setText(message);
+            });
+        } catch (MailException ex) {
+            log.error("Unable to send mail {}", ex.getMessage());
+        }
     }
 
     @Override
@@ -94,7 +137,7 @@ public class OrdersServiceImpl implements OrdersService {
     }
 
     @Override
-    public void removeOrder(Integer id) {
+    public void removeOrder(Long id) {
         boolean isOrderExist = ordersRepository.existsById(id);
         if (isOrderExist)
             ordersRepository.deleteById(id);
@@ -107,7 +150,7 @@ public class OrdersServiceImpl implements OrdersService {
     public OrderResponse getOrderDetails(Long orderId) {
         log.info("Get order details for order Id: {}", orderId);
 
-        Orders order = ordersRepository.findById(Math.toIntExact(orderId))
+        Orders order = ordersRepository.findById(orderId)
                 .orElseThrow(() -> {
                     throw new CustomFeignErrorResponseException("Order not found ", "NOT_FOUND", 404);
                 });
@@ -122,7 +165,7 @@ public class OrdersServiceImpl implements OrdersService {
                 PaymentResponse.class);
 
 
-        assert paymentResponse != null && productResponse != null;
+        assert paymentResponse != null;
         OrderResponse.PaymentDetails paymentDetails =
                 OrderResponse.PaymentDetails.builder()
                         .paymentId(paymentResponse.getPaymentId())
@@ -131,6 +174,7 @@ public class OrdersServiceImpl implements OrdersService {
                         .paymentMode(paymentResponse.getPaymentMode())
                         .build();
 
+        assert productResponse != null;
         OrderResponse.ProductDetails productDetails = OrderResponse.ProductDetails
                 .builder()
                 .productName(productResponse.getProductName())
@@ -140,7 +184,7 @@ public class OrdersServiceImpl implements OrdersService {
                 .build();
 
         return OrderResponse.builder()
-                .orderId(Long.valueOf(order.getOrderId()))
+                .orderId(order.getOrderId())
                 .orderStatus(order.getOrderState())
                 .amount(order.getAmount())
                 .orderDate(order.getOrderDate())
