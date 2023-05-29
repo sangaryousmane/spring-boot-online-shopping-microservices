@@ -27,6 +27,7 @@ import javax.mail.Message;
 import javax.mail.internet.InternetAddress;
 import java.time.Instant;
 import java.util.List;
+import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 
 @Service
@@ -88,6 +89,7 @@ public class OrdersServiceImpl implements OrdersService {
 
         // call the payment service. SUCCESS if complete else FAILED.
         String orderStatus = null;
+
         try {
             paymentService.doPayment(paymentRequest);
             orderStatus = "ORDER PLACED";
