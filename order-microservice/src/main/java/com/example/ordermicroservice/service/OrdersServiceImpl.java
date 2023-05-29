@@ -17,6 +17,7 @@ import lombok.NoArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.MailException;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
@@ -51,6 +52,11 @@ public class OrdersServiceImpl implements OrdersService {
     @Autowired
     private RestTemplate restTemplate;
 
+    @Value("${payment.baseURL}")
+    private String basePaymentURL;
+
+    @Value("${product.baseURL}")
+    private String baseProductURL;
 
     @Override
     public OrderModel saveOrder(OrderModel orderModel) {
@@ -97,6 +103,7 @@ public class OrdersServiceImpl implements OrdersService {
         return orderModel;
     }
 
+    // TODO: send email to customer after order
     public void sendEmailToCustomer(Orders orders) {
         CustomerRequest getCusto = new CustomerRequest();
 
@@ -117,7 +124,7 @@ public class OrdersServiceImpl implements OrdersService {
                 mimeMessage.setText(message);
             });
         } catch (MailException ex) {
-            log.error("Unable to send mail {}", ex.getMessage());
+            log.error("Unable to send mail {} ", ex.getMessage());
         }
     }
 
@@ -157,13 +164,12 @@ public class OrdersServiceImpl implements OrdersService {
 
         log.info("Invoking Product service to fetch the product by Id: {}", order.getProductId());
         ProductResponse productResponse = restTemplate.getForObject(
-                "http://PRODUCT-SERVICE/v1/products/" + order.getProductId(), ProductResponse.class);
+                baseProductURL + order.getProductId(), ProductResponse.class);
 
         log.info("Getting payment information from the payment Service");
         PaymentResponse paymentResponse = restTemplate.getForObject(
-                "http://PAYMENT-SERVICE/v1/payment/order/" + order.getProductId(),
+                basePaymentURL + order.getProductId(),
                 PaymentResponse.class);
-
 
         assert paymentResponse != null;
         OrderResponse.PaymentDetails paymentDetails =
@@ -173,7 +179,6 @@ public class OrdersServiceImpl implements OrdersService {
                         .paymentDate(paymentResponse.getPaymentDate())
                         .paymentMode(paymentResponse.getPaymentMode())
                         .build();
-
         assert productResponse != null;
         OrderResponse.ProductDetails productDetails = OrderResponse.ProductDetails
                 .builder()
@@ -182,7 +187,6 @@ public class OrdersServiceImpl implements OrdersService {
                 .price(productResponse.getPrice())
                 .quantity(productResponse.getQuantity())
                 .build();
-
         return OrderResponse.builder()
                 .orderId(order.getOrderId())
                 .orderStatus(order.getOrderState())

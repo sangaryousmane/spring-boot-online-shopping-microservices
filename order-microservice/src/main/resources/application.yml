@@ -31,7 +31,10 @@ spring:
           starttls:
             enable: true
 
-
+payment:
+  baseURL: http://PAYMENT-SERVICE/v1/payment/order/
+product:
+  baseURL: http://PRODUCT-SERVICE/v1/products/
 
   security:
     oauth2:
