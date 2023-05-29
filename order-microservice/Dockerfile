@@ -7,3 +7,5 @@ COPY ${JAR_FILE} orderservice.jar
 ENTRYPOINT ["java", "-jar", "/orderservice.jar"]
 
 EXPOSE 8081
+
+
